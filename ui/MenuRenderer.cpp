@@ -8,7 +8,8 @@ using namespace ftxui;
 MenuRenderer::MenuRenderer() : selected_(0) {
     entries_ = {
         "  Two Sum  (#1)",
-        "  RayCast - Game  (#2)",
+        "  Add Two Numbers  (#2)",
+        "  RayCast - Game",
         "  Beenden",
     };
 }
