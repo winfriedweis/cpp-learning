@@ -14,10 +14,16 @@ brew install ftxui
 ```bash
 g++ -std=c++20 \
   main.cpp \
+  handlers/Registry.cpp \
+  handlers/TwoSumHandler.cpp \
+  handlers/AddTwoNumbersHandler.cpp \
+  handlers/RayCasterHandler.cpp \
   ui/AnimationEngine.cpp \
   ui/MenuRenderer.cpp \
   ui/ProblemPresenter.cpp \
   algorithms/TwoSum.cpp \
+  algorithms/AddTwoNumbers.cpp \
+  games/RayCaster.cpp \
   -I/opt/homebrew/include \
   -I. \
   -L/opt/homebrew/lib \
@@ -38,29 +44,34 @@ Build: `⌘B` · Run in terminal: find binary under `DerivedData/…/Build/Produ
 ## Architecture
 
 ```
-main.cpp                         ← entry point; wires the three layers
+main.cpp                         ← entry point; wires registry + menu (no algo knowledge)
+  │
+  ├── handlers/Registry          ← list of all AlgoEntry{name, run} — only file to edit when adding
+  │     ├── TwoSumHandler        ← input form + solve + present (self-contained)
+  │     ├── AddTwoNumbersHandler
+  │     └── RayCasterHandler
   │
   ├── ui/MenuRenderer            ← FTXUI interactive menu (controller)
-  │     └── ui/AnimationEngine   ← Matrix rain, Neo intro, loading bar, Morpheus
+  │     └── ui/AnimationEngine   ← Matrix rain, Neo intro, loading bar
   │
-  ├── ui/ProblemPresenter        ← formats + displays algorithm results (view)
-  │     └── ui/AnimationEngine
+  ├── ui/ProblemPresenter        ← generic display utilities (formatArray, formatComplexity…)
   │
-  └── algorithms/TwoSum          ← pure algorithm, zero UI dependencies (model)
+  └── algorithms/TwoSum, AddTwoNumbers   ← pure algorithms, zero UI (model)
+      games/RayCaster
 ```
 
-**Strict rule:** `algorithms/` has no UI includes. `ui/` never touches algorithm internals. `main.cpp` is the only file that crosses layers.
+**Strict rule:** `algorithms/` has no UI includes. `ui/` never touches algorithm internals. `handlers/` files include both UI and algorithm headers — they are the glue layer. `main.cpp` knows only about the registry and menu.
 
-Include paths: `main.cpp` uses `#include "ui/Foo.h"` and `#include "algorithms/Bar.h"`. Files within a subdirectory use flat includes (`#include "AnimationEngine.h"`).
+Include paths: `main.cpp` uses `#include "ui/Foo.h"` and `#include "handlers/Bar.h"`. Handler files use `#include "ui/Foo.h"` and `#include "algorithms/Bar.h"` (project-root-relative). Files within `ui/` use flat includes (`#include "AnimationEngine.h"`).
 
 ## Adding a new algorithm
 
-1. Create `algorithms/AlgoName.h` / `.cpp` with `solve()`, `getName()`, `getTimeComplexity()`, `getSpaceComplexity()`. No UI includes.
-2. Add a `handleAlgoName()` static function in `main.cpp` that creates the algorithm, calls `solve()`, and passes results to a `ProblemPresenter` method.
-3. Add the menu entry string to `MenuRenderer::MenuRenderer()` (before "Beenden").
-4. Add a `case` to the `switch` in `main.cpp`.
+1. Create `algorithms/AlgoName.h/.cpp` — pure algorithm, no UI includes.
+2. Create `handlers/AlgoNameHandler.h/.cpp` — input form, solve, present (use `ProblemPresenter` static helpers for formatting).
+3. Add one line to `handlers/Registry.cpp` — the menu updates automatically, no changes to `main.cpp` needed.
 
 ## Naming conventions
 
 - Classes: `PascalCase` · Methods: `camelCase` · Private members: `trailing_` underscore
 - `#pragma once` in all headers · `using namespace ftxui` only in `.cpp` files
+- Handler `.cpp` files use anonymous `namespace { }` for all file-scope private helpers (preferred over `static` for multiple items)

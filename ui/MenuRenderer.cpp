@@ -5,14 +5,7 @@
 
 using namespace ftxui;
 
-MenuRenderer::MenuRenderer() : selected_(0) {
-    entries_ = {
-        "  Two Sum  (#1)",
-        "  Add Two Numbers  (#2)",
-        "  RayCast - Game",
-        "  Beenden",
-    };
-}
+MenuRenderer::MenuRenderer() : selected_(0) {}
 
 void MenuRenderer::setEntries(const std::vector<std::string>& entries) {
     entries_ = entries;

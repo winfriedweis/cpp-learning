@@ -6,7 +6,7 @@
 // Time: O(n)  |  Space: O(n)
 class TwoSum {
 public:
-    std::vector<int> solve(const std::vector<int>& nums, int target) const;
+    [[nodiscard]] std::vector<int> solve(const std::vector<int>& nums, int target) const;
 
     static const char* getName()           { return "Two Sum"; }
     static const char* getTimeComplexity() { return "O(n)"; }
